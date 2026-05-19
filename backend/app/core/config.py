@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     k8s_context: Optional[str] = None
     log_tail_lines_default: int = 500
     log_tail_lines_max: int = 2000
+    k8s_mock_mode: bool = False
 
     class Config:
         env_file = ".env"

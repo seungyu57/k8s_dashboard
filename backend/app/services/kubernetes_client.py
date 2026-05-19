@@ -21,6 +21,7 @@ class KubernetesClientFactory:
     2. Fall back to config.load_kube_config(config_file=settings.kubeconfig,
        context=settings.k8s_context) for local development.
     3. Expose only read clients such as CoreV1Api and AppsV1Api.
+    4. When K8S_MOCK_MODE=true, return in-process read-only fixture clients.
 
     Important security rule:
     - Do not add write/delete/patch/update helper methods here.
@@ -31,6 +32,10 @@ class KubernetesClientFactory:
         self.settings = get_settings()
 
     def create(self):
+        if self.settings.k8s_mock_mode:
+            from app.services.mock_kubernetes import MockAppsV1Api, MockCoreV1Api
+            return KubernetesClients(core_v1=MockCoreV1Api(), apps_v1=MockAppsV1Api())
+
         try:
             from kubernetes import client, config
         except ImportError as exc:

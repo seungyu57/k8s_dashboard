@@ -40,6 +40,28 @@ curl http://localhost:8000/health
 curl http://localhost:8000/api/clusters/local/overview
 ```
 
+
+### kubeconfig 없이 Mock 모드로 실행
+
+현재 계정이 kubeconfig에 접근하지 못하거나 실제 클러스터 연결 전에 UI를 확인하려면 mock 모드를 사용합니다.
+
+```bash
+cd backend
+source .venv/bin/activate
+export K8S_MOCK_MODE=true
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+확인:
+
+```bash
+curl http://localhost:8000/api/clusters/local/overview
+curl http://localhost:8000/api/clusters/local/nodes
+curl http://localhost:8000/api/clusters/local/pods
+```
+
+Mock 모드는 Kubernetes API에 접속하지 않고 내장 fixture 데이터를 반환합니다. 실제 클러스터를 조회하려면 `K8S_MOCK_MODE=false`로 두고 `KUBECONFIG` 또는 InClusterConfig를 사용해야 합니다.
+
 ### 로컬 kubeconfig 사용
 
 Backend는 Kubernetes Python Client를 사용합니다. 로컬 개발 환경에서는 kubeconfig fallback을 사용합니다.
