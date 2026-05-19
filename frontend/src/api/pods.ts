@@ -1,7 +1,7 @@
 import { apiGet, queryString } from './client';
 import type { PodLogResponse, PodSummary } from '../types/pod';
 
-export function listPods(params: { namespace?: string; status?: string; nodeName?: string; gpuOnly?: boolean } = {}) {
+export function listPods(params: { namespace?: string; status?: string; nodeName?: string; gpuOnly?: boolean; search?: string; dataikuOnly?: boolean } = {}) {
   return apiGet<PodSummary[]>(`/api/clusters/local/pods${queryString(params)}`);
 }
 

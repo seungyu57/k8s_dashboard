@@ -49,6 +49,21 @@ class KubernetesNormalizationTest(unittest.TestCase):
         self.assertEqual(len(service.list_pods("local", node_name="gpu-worker-01")), 1)
         self.assertEqual(len(service.list_pods("local", gpu_only=True)), 2)
 
+
+    def test_pod_filters_search_and_dataiku_only(self):
+        service = PodService(core_v1=self.core)
+
+        dataiku_pods = service.list_pods("local", dataiku_only=True)
+        self.assertEqual(len(dataiku_pods), 1)
+        self.assertEqual(dataiku_pods[0].name, "training-job-h100")
+
+        searched = service.list_pods("local", search="does-not-exist")
+        self.assertEqual(searched, [])
+
+        searched = service.list_pods("local", search="testforjsj")
+        self.assertEqual(len(searched), 1)
+        self.assertEqual(searched[0].name, "training-job-h100")
+
     def test_gpu_utility_sums_container_requests_and_limits(self):
         pod = fixture_pod()
         requests, limits = calculate_gpu_requests_limits(pod.spec.containers)

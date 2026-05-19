@@ -18,7 +18,7 @@ class PodService:
             return self._core_v1
         return self.client_factory.create().core_v1
 
-    def list_pods(self, cluster_id, namespace=None, status=None, node_name=None, gpu_only=False):
+    def list_pods(self, cluster_id, namespace=None, status=None, node_name=None, gpu_only=False, search=None, dataiku_only=False):
         try:
             if namespace:
                 response = self._core().list_namespaced_pod(namespace=namespace)
@@ -31,6 +31,11 @@ class PodService:
                 pods = [pod for pod in pods if pod.node_name == node_name]
             if gpu_only:
                 pods = [pod for pod in pods if pod.gpu_requests > 0 or pod.gpu_limits > 0]
+            if dataiku_only:
+                pods = [pod for pod in pods if self._is_dataiku_pod(pod)]
+            if search:
+                lowered = search.lower()
+                pods = [pod for pod in pods if self._matches_search(pod, lowered)]
             return pods
         except KubernetesClientError as exc:
             raise HTTPException(status_code=503, detail=str(exc))
@@ -141,6 +146,22 @@ class PodService:
                 target[key] = str(value)
             elif target[key] != str(value):
                 target[key] = "{0} + {1}".format(target[key], value)
+
+    def _is_dataiku_pod(self, pod):
+        return any(key.startswith("dataiku.com/") for key in (pod.labels or {}).keys())
+
+    def _matches_search(self, pod, lowered):
+        values = [pod.namespace, pod.name, pod.node_name or "", pod.phase or "", pod.waiting_reason or ""]
+        labels = pod.labels or {}
+        dataiku_keys = [
+            "dataiku.com/dku-project-key",
+            "dataiku.com/dku-exec-submitter",
+            "dataiku.com/dku-execution-id",
+            "dataiku.com/dku-container-conf",
+            "dataiku.com/dku-execution-type",
+        ]
+        values.extend(labels.get(key, "") for key in dataiku_keys)
+        return any(lowered in str(value).lower() for value in values if value is not None)
 
     def _condition_dict(self, condition):
         return {

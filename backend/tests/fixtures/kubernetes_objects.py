@@ -31,7 +31,7 @@ def fixture_pod():
             namespace="ml",
             name="training-job-h100",
             creation_timestamp=datetime(2026, 5, 19, 0, 10, 0),
-            labels={"app": "trainer", "dataiku.com/job": "true"},
+            labels={"app": "trainer", "dataiku.com/job": "true", "dataiku.com/dku-project-key": "testforjsj", "dataiku.com/dku-exec-submitter": "soojin.jun", "dataiku.com/dku-container-conf": "spark-rapids"},
             annotations={"owner": "mlops"},
         ),
         spec=NS(
