@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: k8s-dashboard-frontend
   namespace: k8s-readonly-dashboard
+  labels:
+    app: k8s-dashboard-frontend
 spec:
   replicas: 1
   selector:
@@ -15,7 +17,33 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: example/k8s-dashboard-frontend:latest
+          image: ghcr.io/seungyu57/k8s-dashboard-frontend:latest # replace with your pushed image tag
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]

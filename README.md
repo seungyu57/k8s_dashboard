@@ -99,11 +99,24 @@ npm run dev
 http://localhost:5173
 ```
 
-Frontend는 기본적으로 `VITE_API_BASE_URL=http://localhost:8000`을 사용합니다.
+Frontend는 기본적으로 같은 origin의 `/api`를 호출합니다. 로컬 Vite 개발 서버는 `/api`와 `/health`를 `http://localhost:8000`으로 proxy합니다. 다른 Backend 주소를 직접 호출해야 할 때만 `VITE_API_BASE_URL`을 설정합니다.
 
 ## Kubernetes 배포
 
-`deploy/k8s` 디렉터리에 추후 배포를 위한 기본 YAML 뼈대가 있습니다. 현재 이미지는 placeholder이므로 실제 빌드/레지스트리 푸시 후 image 값을 변경해야 합니다.
+`deploy/k8s` 디렉터리에 Kubernetes 배포용 YAML이 있습니다. 이미지 빌드/푸시 후 `backend-deployment.yaml`, `frontend-deployment.yaml`의 `image:` 값을 실제 registry/tag로 맞춥니다. 자세한 절차는 `docs/deploy-checklist.md`를 봅니다.
+
+### Docker image build
+
+Repository root에서 실행합니다.
+
+```bash
+docker build -f backend/Dockerfile -t ghcr.io/seungyu57/k8s-dashboard-backend:latest .
+docker build -f frontend/Dockerfile -t ghcr.io/seungyu57/k8s-dashboard-frontend:latest .
+```
+
+### Frontend API 연결 방식
+
+배포 환경에서는 Frontend가 같은 origin의 `/api`를 호출합니다. Ingress는 `/api`와 `/health`를 backend Service로 라우팅하고, frontend nginx도 `/api`와 `/health`를 `k8s-dashboard-backend:8000`으로 proxy합니다. 이 방식을 선택한 이유는 브라우저 CORS 설정을 단순화하고, 빌드된 정적 파일에 클러스터별 API URL을 하드코딩하지 않기 위해서입니다.
 
 ## 보안 원칙
 
