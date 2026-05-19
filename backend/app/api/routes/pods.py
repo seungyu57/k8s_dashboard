@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter
 
@@ -10,10 +10,10 @@ service = PodService()
 
 
 @router.get("/clusters/{cluster_id}/pods", response_model=List[PodSummary])
-def list_pods(cluster_id, namespace=None, status=None, nodeName=None, gpuOnly=False):
+def list_pods(cluster_id, namespace: Optional[str] = None, status: Optional[str] = None, nodeName: Optional[str] = None, gpuOnly: bool = False):
     return service.list_pods(cluster_id, namespace=namespace, status=status, node_name=nodeName, gpu_only=gpuOnly)
 
 
 @router.get("/clusters/{cluster_id}/namespaces/{namespace}/pods/{podName}", response_model=PodDetail)
-def get_pod(cluster_id, namespace, podName):
+def get_pod(cluster_id: str, namespace: str, podName: str):
     return service.get_pod(cluster_id, namespace, podName)
