@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-dashboard-backend
+  namespace: k8s-readonly-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-dashboard-backend
+  template:
+    metadata:
+      labels:
+        app: k8s-dashboard-backend
+    spec:
+      serviceAccountName: k8s-readonly-dashboard
+      containers:
+        - name: backend
+          image: example/k8s-dashboard-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: APP_ENV
+              value: production
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
